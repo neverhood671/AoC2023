@@ -1,45 +1,23 @@
-const fs = require('fs')
-const readline = require('readline')
+const processLineByLine = require('../utils/processLineByLine');
 
-async function processLineByLine(lineProcessor) {
-    const fileStream = fs.createReadStream('input.txt')
-
-    const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity
-    })
-
-    let sum = 0
-    for await (const line of rl) {
-        sum += lineProcessor(line)
+function getNumber(line, fromStart = true) {
+  const chars = line.split('');
+  let isNumberFound = false,
+    i = fromStart ? 0 : line.length - 1;
+  let res = '';
+  while (!isNumberFound) {
+    isNumberFound = !isNaN(parseInt(chars[i]));
+    if (isNumberFound) {
+      res += chars[i];
+      break;
     }
-    console.log(sum)
-    return sum;
+    i = fromStart ? i + 1 : i - 1;
+  }
+  return res;
 }
 
-function getNumFromLine(line) {
-    const chars = line.split('')
-    let isNumberFound = false, i = 0;
-    let res = ''
-    while (!isNumberFound) {
-        isNumberFound = !isNaN(parseInt(chars[i]))
-        if (isNumberFound) {
-            res += chars[i]
-            break
-        }
-        i++
-    }
-    isNumberFound = false
-    i = line.length - 1
-    while (!isNumberFound) {
-        isNumberFound = !isNaN(parseInt(chars[i]))
-        if (isNumberFound) {
-            res += chars[i]
-            break
-        }
-        i--
-    }
-    return parseInt(res)
-}
-
-processLineByLine(getNumFromLine);
+processLineByLine(
+  (line, acc) => acc + parseInt('' + getNumber(line) + getNumber(line, false)),
+  0,
+  'answer1.txt'
+);

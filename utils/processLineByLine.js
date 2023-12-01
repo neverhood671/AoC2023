@@ -1,7 +1,7 @@
 const fs = require('fs')
 const readline = require('readline')
 
-async function processLineByLine(lineProcessor, accInitValue) {
+async function processLineByLine(lineProcessor, accInitValue, resFileName) {
     const fileStream = fs.createReadStream('input.txt')
 
     const rl = readline.createInterface({
@@ -13,7 +13,7 @@ async function processLineByLine(lineProcessor, accInitValue) {
     for await (const line of rl) {
         acc = lineProcessor(line, acc)
     }
-    return acc;
+    fs.writeFileSync(resFileName, acc.toString());
 }
 
 module.exports = processLineByLine
