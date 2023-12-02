@@ -2,14 +2,13 @@ const processLineByLine = require('../utils/processLineByLine');
 const digits = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 
 function getNumber(line, fromStart = true) {
-  const chars = line.split('');
   let isNumberFound = false,
     i = fromStart ? 0 : line.length - 1;
   let res = '';
   while (!isNumberFound) {
-    isNumberFound = !isNaN(parseInt(chars[i]));
+    isNumberFound = !isNaN(parseInt(line[i]));
     if (isNumberFound) {
-      res += chars[i];
+      res += line[i];
       break;
     }
 
@@ -26,10 +25,8 @@ function getNumber(line, fromStart = true) {
 }
 
 function getStrNum(line, start) {
-  let isNumberFound = false;
   for (let i = 0; i < digits.length; i++) {
-    isNumberFound = line.startsWith(digits[i], start);
-    if (isNumberFound) {
+    if (line.startsWith(digits[i], start)) {
       return i + 1;
     }
   }
