@@ -2,6 +2,7 @@ const processLineByLine = require('../utils/processLineByLine');
 
 const getAnswer = (line, acc) => {
   const [winNumbersStr, myNumbersStr] = line.split(':')[1].split('|');
+  // todo: [refactor] replace with getArrOfNumbersFromStr() call
   const regexpNumbers = /[\d]+/g;
   const winNumbers = [...winNumbersStr.matchAll(regexpNumbers)].map(item => parseInt(item[0])),
     myNumbers = [...myNumbersStr.matchAll(regexpNumbers)].map(item => parseInt(item[0]));
