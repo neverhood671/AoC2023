@@ -1,4 +1,4 @@
-const readFileToString = require('../utils/readFileToString');
+const readFileToString = require('../utils/readAllStringsFromFile');
 const writeStringToFile = require('../utils/writeStringToFile');
 const input = readFileToString('input.txt');
 const getArrOfNumbersFromStr = require('../utils/getArrOfNumbersFromStr');

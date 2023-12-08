@@ -1,10 +1,10 @@
 const fs = require('fs');
 
-function readFileToString(filePath) {
+function readAllStringsFromFile(filePath) {
   return fs
     .readFileSync(filePath)
     .toString('utf-8')
     .split('\n');
 }
 
-module.exports = readFileToString;
+module.exports = readAllStringsFromFile;
