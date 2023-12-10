@@ -59,6 +59,7 @@ const getNextTiles = (currX, currY, map, direction, prevStep) => {
         cameFrom: getOppositeDirection(nextTileDirection),
         position: [nextX, nextY],
         prevStep: prevStep + 1,
+        prevPipe: currPipe,
       });
   }
   return res;
@@ -74,8 +75,8 @@ function makeArray(w, h, val) {
   }
   return arr;
 }
-const getFarthestCycleIndex = (startX, startY, map) => {
-  const stepsMatrix = makeArray(map.length, map[0].length, '');
+const findCycle = (startX, startY, map) => {
+  let stepsMatrix = makeArray(map[0].length, map.length, '');
   let [currX, currY] = [startX, startY];
   const stack = [
     {
@@ -84,22 +85,80 @@ const getFarthestCycleIndex = (startX, startY, map) => {
     },
   ];
   while (stack.length > 0) {
-    const {cameFrom, position, prevStep} = stack.pop();
+    const {cameFrom, position, prevStep, prevPipe} = stack.pop();
     const [currX, currY] = position;
+
+    if (!prevPipe && currX !== startX && currY !== startY)
+      stepsMatrix = makeArray(map[0].length, map.length, '');
     if (stepsMatrix[currX][currY] === '') {
       stepsMatrix[currX][currY] = prevStep + 1;
       stack.push(...getNextTiles(currX, currY, map, cameFrom, prevStep));
     } else {
-      return Math.ceil(prevStep / 2);
+      return [prevStep, stepsMatrix];
     }
   }
+};
+const getSTrueValue = (startX, startY, map, stepMatrix, cycleLength) => {
+  if (
+    stepMatrix[startX] &&
+    ((stepMatrix[startX][startY - 1] === 1 && stepMatrix[startX][startY + 1] === cycleLength) ||
+      (stepMatrix[startX][startY - 1] === cycleLength && stepMatrix[startX][startY + 1] === 1))
+  )
+    return '-';
+  if (
+    stepMatrix[startX - 1] &&
+    ((stepMatrix[startX - 1][startY] === 1 && stepMatrix[startX + 1][startY] === cycleLength) ||
+      (stepMatrix[startX - 1][startY] === cycleLength && stepMatrix[startX + 1][startY] === 1))
+  )
+    return '|';
+  if (
+    stepMatrix[startX + 1] &&
+    ((stepMatrix[startX + 1][startY] === 1 && stepMatrix[startX][startY + 1] === cycleLength) ||
+      (stepMatrix[startX + 1][startY] === cycleLength && stepMatrix[startX][startY + 1] === 1))
+  )
+    return 'F';
+  if (
+    stepMatrix[startX + 1] &&
+    ((stepMatrix[startX + 1][startY] === 1 && stepMatrix[startX][startY - 1] === cycleLength) ||
+      (stepMatrix[startX + 1][startY] === cycleLength && stepMatrix[startX][startY - 1] === 1))
+  )
+    return '7';
+  if (
+    stepMatrix[startX - 1] &&
+    ((stepMatrix[startX - 1][startY] === 1 && stepMatrix[startX][startY + 1] === cycleLength) ||
+      (stepMatrix[startX - 1][startY] === cycleLength && stepMatrix[startX][startY + 1] === 1))
+  )
+    return 'L';
+
+  return 'J';
+};
+
+const getInnerSquare = (map, stepMatrix) => {
+  let res = 0;
+
+  const verticalPipesStart = ['|', '7', 'F'];
+
+  for (let i = 0; i < map.length; i++) {
+    let isCounting = false;
+    for (let j = 0; j < map[0].length; j++) {
+      if (isCounting && (map[i][j] === '.' || !Number.isInteger(stepMatrix[i][j]))) {
+        res++;
+      }
+      if (verticalPipesStart.includes(map[i][j]) && Number.isInteger(stepMatrix[i][j])) {
+        isCounting = !isCounting;
+      }
+    }
+  }
+  return res;
 };
 
 const getAnswer = strings => {
   const map = strings.map(s => s.split(''));
   const [startX, startY] = getStartCoordinates(map);
+  const [cycleLength, stepMatrix] = findCycle(startX, startY, map);
 
-  return getFarthestCycleIndex(startX, startY, map);
+  map[startX][startY] = getSTrueValue(startX, startY, map, stepMatrix, cycleLength);
+  return getInnerSquare(map, stepMatrix);
 };
 
 writeStringToFile(getAnswer(input).toString(), 'answer1.txt');
