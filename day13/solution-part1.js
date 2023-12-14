@@ -50,11 +50,16 @@ const getAnswer = strings => {
     },
     [[]]
   );
-  return patterns
-    .map(p => findMirror(p))
-    .reduce((acc, curr) => {
-      acc += curr[0] === 0 ? curr[1] : curr[0] * 100;
-      return acc;
-    }, 0);
+  const res = patterns.map(p => findMirror(p));
+  // .reduce((acc, curr) => {
+  //   acc += curr[0] === 0 ? curr[1] : curr[0] * 100;
+  //   return acc;
+  // }, 0);
+
+  console.log(
+    123,
+    res.forEach(r => console.log(r))
+  );
+  return res;
 };
 writeStringToFile(getAnswer(input).toString(), 'answer1.txt');
