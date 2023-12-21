@@ -1,108 +1,91 @@
 const readFileToString = require('../utils/readAllStringsFromFile');
 const writeStringToFile = require('../utils/writeStringToFile');
+const getArrOfNumbersFromStr = require("../utils/getArrOfNumbersFromStr");
 const input = readFileToString('input.txt');
+const START_RULE_NAME = 'in'
+
+const getFunctionDescription = str => {
+    const funBodyStartIndex = str.indexOf('{')
+    const funName = str.substring(0, funBodyStartIndex)
+    const bodyStr = str.substring(funBodyStartIndex + 1, str.length - 1)
+    return [funName, bodyStr]
+}
+
+const isPartAccepted = (part, decider) => decider(part)
+
+const isFunctionName = (string) => {
+    const nonLowercaseLetters = /[^a-z]/g;
+    return !nonLowercaseLetters.test(string);
+};
+
+const getCallbackFunction = (callbackStr, rulesMap) => {
+    console.log('callbackStr', callbackStr, callbackStr.length)
+    return callbackStr === 'A'
+        ? '(() => true)'
+        : callbackStr === 'R'
+            ? '(() => false)'
+            : isFunctionName(callbackStr)
+                ? buildFunction(callbackStr, rulesMap)
+                : buildFunctionFromFunctionDescriptionStr(callbackStr, rulesMap)
+}
+const buildFunctionFromFunctionDescriptionStr = (functionDescriptionStr, rulesMap) => {
+    const firstColonIndex = functionDescriptionStr.indexOf(':')
+    const conditionStr = functionDescriptionStr.substring(0, firstColonIndex),
+        bodyStr = functionDescriptionStr.substring(firstColonIndex + 1)
+    const paramName = conditionStr[0],
+        conditionSign = conditionStr[1],
+        conditionValue = +conditionStr.substring(2),
+        callbackSeparatorIndex = bodyStr.indexOf(','),
+        positiveCallbackStr = bodyStr.substring(0, callbackSeparatorIndex),
+        negativeCallbackStr = bodyStr.substring(callbackSeparatorIndex + 1);
+
+    const positiveCallback = getCallbackFunction(positiveCallbackStr, rulesMap),
+        negativeCallback = getCallbackFunction(negativeCallbackStr, rulesMap),
+        functionStr = `return part['${paramName}'] ${conditionSign} ${conditionValue} ? ${positiveCallback}(part) : ${negativeCallback}(part)`
+
+    console.log('functionStr', functionStr)
+
+    return new Function('part', functionStr)
+}
+
+const buildFunction = (startFunName, rulesMap) => {
+    const functionDescriptionStr = rulesMap[startFunName];
+    return buildFunctionFromFunctionDescriptionStr(functionDescriptionStr, rulesMap)
+}
 
 const getAnswer = strings => {
-  const actions = strings.map(s => s.split(' '));
-
-  let minX = Number.MAX_SAFE_INTEGER,
-    minY = Number.MAX_SAFE_INTEGER,
-    maxX = Number.MIN_SAFE_INTEGER,
-    maxY = Number.MIN_SAFE_INTEGER;
-  let currX = 0,
-    currY = 0;
-  actions.forEach(([direction, stepsNumStr]) => {
-    const stepsNum = parseInt(stepsNumStr);
-    switch (direction) {
-      case 'R':
-        currY += stepsNum;
-        break;
-      case 'L':
-        currY -= stepsNum;
-        break;
-      case 'U':
-        currX -= stepsNum;
-        break;
-      case 'D':
-        currX += stepsNum;
-        break;
-    }
-    if (currX < minX) minX = currX;
-    if (currY < minY) minY = currY;
-    if (currX > maxX) maxX = currX;
-    if (currY > maxY) maxY = currY;
-  });
-
-  const startX = Math.abs(minX),
-    startY = Math.abs(minY);
-
-  const field = [];
-  for (let i = 0; i <= maxX - minX; i++) {
-    for (let j = 0; j <= maxY - minY; j++) {
-      if (!field[i]) field[i] = [];
-      field[i][j] = '.';
-    }
-  }
-
-  let currTileX = startX,
-    currTileY = startY;
-
-  actions.forEach(([direction, stepsNumStr]) => {
-    const stepsNum = parseInt(stepsNumStr);
-    switch (direction) {
-      case 'R':
-        for (let j = currTileY; j <= currTileY + stepsNum; j++) {
-          field[currTileX][j] = ['D', 'U'].includes(field[currTileX][j])
-            ? field[currTileX][j]
-            : '#';
+    let isRules = true
+    const rulesStrings = [],
+        parts = []
+    strings.forEach(string => {
+        if (string.length === 0) {
+            isRules = false
+        } else if (isRules) {
+            rulesStrings.push(getFunctionDescription(string))
+        } else {
+            const [x, m, a, s] = getArrOfNumbersFromStr(string)
+            parts.push({x, m, a, s})
         }
-        currTileY += stepsNum;
-        break;
-      case 'L':
-        for (let j = currTileY; j >= currTileY - stepsNum; j--) {
-          field[currTileX][j] = ['D', 'U'].includes(field[currTileX][j])
-            ? field[currTileX][j]
-            : '#';
-        }
-        currTileY -= stepsNum;
-        break;
-      case 'U':
-        for (let i = currTileX; i >= currTileX - stepsNum; i--) {
-          field[i][currTileY] = 'U';
-        }
-        currTileX -= stepsNum;
-        break;
-      case 'D':
-        for (let i = currTileX; i <= currTileX + stepsNum; i++) {
-          field[i][currTileY] = 'D';
-        }
-        currTileX += stepsNum;
-        break;
-    }
-  });
+    })
 
-  field.map(s => console.log(s.join(''))).join('\n');
 
-  let res = 0;
+    const rulesMap = rulesStrings.reduce((acc, curr) => {
+        acc[curr[0]] = curr[1]
+        return acc
+    }, {})
 
-  for (let i = 0; i < field.length; i++) {
-    let isCounting = false;
-    let tilesInRow = 0;
-    for (let j = 0; j < field[0].length; j++) {
-      if (['D', 'U', '#'].includes(field[i][j])) tilesInRow++;
-      if (isCounting && field[i][j] === '.') {
-        tilesInRow++;
-      } else if (!isCounting && field[i][j] === 'U') {
-        isCounting = true;
-      } else if (isCounting && field[i][j] === 'D') {
-        isCounting = false;
-      }
-    }
-    console.log(i, tilesInRow);
-    res += tilesInRow;
-  }
+    const decider = buildFunction(START_RULE_NAME, rulesMap)
 
-  console.log(res);
-  return field.map(s => s.join('')).join('\n');
-};
+    const res = parts.reduce((acc, curr) => {
+        const isAccepted = isPartAccepted(curr, decider)
+        console.log('isAccepted', curr, isAccepted)
+        if (isAccepted) acc += Object.keys(curr).reduce((sum, key) => sum + curr[key], 0)
+        return acc
+    }, 0)
+
+
+    console.log(res)
+    return ''
+}
+
 writeStringToFile(getAnswer(input), 'answer1.txt');
