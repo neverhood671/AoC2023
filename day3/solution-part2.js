@@ -1,5 +1,6 @@
 const readFileToString = require('../utils/readAllStringsFromFile');
 const writeStringToFile = require('../utils/writeStringToFile');
+const range = require('../utils/range');
 
 const getLineCharIndexes = line => {
   const regexp = /[^.\d]/g;
@@ -12,15 +13,6 @@ const getLineGearIndexes = line => {
     if (char === '*') res.push(i);
   });
   return res;
-};
-
-const range = (min, max) => {
-  const len = max - min + 1;
-  const arr = new Array(len);
-  for (let i = 0; i < len; i++) {
-    arr[i] = min + i;
-  }
-  return arr;
 };
 
 const getPartNumbers = (line, prevLineCharIndexes, currLineCharIndexes, nextLineCharIndexes) => {

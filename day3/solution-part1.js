@@ -1,18 +1,10 @@
 const readFileToString = require('../utils/readAllStringsFromFile');
 const writeStringToFile = require('../utils/writeStringToFile');
+const range = require('../utils/range');
 
 const getLineCharIndexes = line => {
   const regexp = /[^.\d]/g;
   return [...line.matchAll(regexp)].map(item => item.index);
-};
-
-const range = (min, max) => {
-  const len = max - min + 1;
-  const arr = new Array(len);
-  for (let i = 0; i < len; i++) {
-    arr[i] = min + i;
-  }
-  return arr;
 };
 
 const getPartNumbersSum = (line, prevLineCharIndexes, currLineCharIndexes, nextLineCharIndexes) => {
